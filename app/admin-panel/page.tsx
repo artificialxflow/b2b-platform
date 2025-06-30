@@ -73,6 +73,9 @@ export default function AdminPanel() {
   const [memberError, setMemberError] = useState<string | null>(null);
   const [memberSuccess, setMemberSuccess] = useState<string | null>(null);
 
+  // اضافه کردن یک هوک برای تشخیص موبایل
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   useEffect(() => {
     if (active === 'products') {
       setLoading(true);
@@ -111,25 +114,45 @@ export default function AdminPanel() {
   return (
     <div dir="rtl" className="container-fluid p-0" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #ffe5d0 0%, #ffd6e0 100%)', fontFamily: 'Vazirmatn, Tahoma, Arial' }}>
       <div className="row g-0" style={{ minHeight: '100vh' }}>
-        {/* Right-side menu */}
-        <div className="col-12 col-md-3 col-lg-2 bg-white shadow-sm d-flex flex-column align-items-end p-0" style={{ borderLeft: '1px solid #f3f4f6', minHeight: '100vh' }}>
-          <nav className="nav flex-column w-100 pt-4">
-            {sections.map((s) => (
-              <button
-                key={s.key}
-                className={`nav-link text-end px-4 py-3 border-0 bg-transparent ${active === s.key ? 'active fw-bold text-primary' : ''}`}
-                style={{ fontSize: 18, borderRadius: '2rem 0 0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
-                onClick={() => setActive(s.key)}
-                type="button"
-              >
-                <span style={{ fontSize: 22, marginLeft: 10 }}>{s.icon}</span>
-                <span>{s.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
+        {/* Responsive menu */}
+        {isMobile ? (
+          <>
+            <div style={{ height: 56 }} /> {/* فضای خالی برای منوی پایین */}
+            <nav className="bg-white shadow-lg d-flex flex-row align-items-center justify-content-between px-2 py-1 fixed-bottom" style={{ borderTop: '1px solid #f3f4f6', zIndex: 100, minHeight: 56 }}>
+              {sections.map((s) => (
+                <button
+                  key={s.key}
+                  className={`nav-link border-0 bg-transparent ${active === s.key ? 'active fw-bold text-primary' : ''}`}
+                  style={{ fontSize: 15, borderRadius: 12, display: 'flex', alignItems: 'center', flexDirection: 'column', padding: 4, minWidth: 48, flex: 1 }}
+                  onClick={() => setActive(s.key)}
+                  type="button"
+                >
+                  <span style={{ fontSize: 22 }}>{s.icon}</span>
+                  <span style={{ fontSize: 11 }}>{s.label}</span>
+                </button>
+              ))}
+            </nav>
+          </>
+        ) : (
+          <div className="col-12 col-md-3 col-lg-2 bg-white shadow-sm d-flex flex-column align-items-end p-0" style={{ borderLeft: '1px solid #f3f4f6', minHeight: '100vh' }}>
+            <nav className="nav flex-column w-100 pt-4">
+              {sections.map((s) => (
+                <button
+                  key={s.key}
+                  className={`nav-link text-end px-4 py-3 border-0 bg-transparent ${active === s.key ? 'active fw-bold text-primary' : ''}`}
+                  style={{ fontSize: 18, borderRadius: '2rem 0 0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}
+                  onClick={() => setActive(s.key)}
+                  type="button"
+                >
+                  <span style={{ fontSize: 22, marginLeft: 10 }}>{s.icon}</span>
+                  <span>{s.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        )}
         {/* Main content */}
-        <div className="col-12 col-md-9 col-lg-10 p-4" style={{ minHeight: '100vh' }}>
+        <div className={isMobile ? 'col-12 p-2' : 'col-12 col-md-9 col-lg-10 p-4'} style={{ minHeight: '100vh' }}>
           {active === 'products' && (
             <div>
               <h4 className="fw-bold mb-4 text-end">🛒 مدیریت محصولات</h4>
@@ -190,31 +213,33 @@ export default function AdminPanel() {
               <h4 className="fw-bold mb-4 text-end">💎 مدیریت پلن‌ها و قیمت‌های اختصاصی</h4>
               <div className="row g-4">
                 {plans.map((plan) => (
-                  <div className="col-12 col-lg-6" key={plan.plan_id}>
-                    <div className="card p-4 shadow-sm border-0 rounded-4 mb-2" style={{ background: '#fff' }}>
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <span className="fw-bold" style={{ fontSize: 16 }}>{plan.name}</span>
-                        <span className="badge bg-info text-dark" style={{ fontSize: 13 }}>
+                  <div className={isMobile ? 'col-12' : 'col-12 col-lg-6'} key={plan.plan_id}>
+                    <div className="card p-3 shadow-sm border-0 rounded-4 mb-2" style={{ background: '#fff' }}>
+                      <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                        <span className="fw-bold" style={{ fontSize: isMobile ? 15 : 16 }}>{plan.name}</span>
+                        <span className="badge" style={{ background: '#007bff', color: '#fff', fontSize: isMobile ? 15 : 16, padding: '8px 16px', borderRadius: 12, fontWeight: 700 }}>
                           درصد تخفیف: {plan.discount_percent} %
                         </span>
                       </div>
                       <div className="mb-2">
-                        <table className="table table-sm mb-0 text-end" style={{ fontSize: 14 }}>
-                          <thead>
-                            <tr>
-                              <th>محصول</th>
-                              <th>قیمت پلنی</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {plan.products.map((prod) => (
-                              <tr key={prod.product_id}>
-                                <td>{prod.name}</td>
-                                <td>{prod.special_price?.toLocaleString()} تومان</td>
+                        <div className="table-responsive">
+                          <table className="table table-sm mb-0 text-end" style={{ fontSize: isMobile ? 13 : 14 }}>
+                            <thead>
+                              <tr>
+                                <th>محصول</th>
+                                <th>قیمت پلنی</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {plan.products.map((prod) => (
+                                <tr key={prod.product_id}>
+                                  <td>{prod.name}</td>
+                                  <td>{prod.special_price?.toLocaleString()} تومان</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   </div>
