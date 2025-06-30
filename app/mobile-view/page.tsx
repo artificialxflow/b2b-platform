@@ -163,7 +163,7 @@ export default function MobileView() {
                 <h5 className="fw-bold mb-0" style={{ fontSize: 20 }}>{selectedCategory}</h5>
               </div>
               <div className="mb-3 d-flex flex-column align-items-end">
-                <span className="fw-bold" style={{ fontSize: 16, color: '#ff7e5f' }}>{userPlan.name}</span>
+                <span className="fw-bold" style={{ fontSize: 18, color: '#222', textShadow: '0 1px 4px #fff7e6' }}>{userPlan.name}</span>
                 <span className="badge bg-info text-dark mt-1" style={{ fontSize: 13 }}>درصد سود: {userPlan.profit_percent}%</span>
               </div>
               {orderError && <div className="alert alert-warning text-end" style={{ fontSize: 15 }}>{orderError}</div>}
