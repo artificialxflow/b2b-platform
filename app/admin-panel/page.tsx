@@ -7,6 +7,7 @@ const sections = [
   { key: 'inventory', label: 'موجودی', icon: '📦' },
   { key: 'wallet', label: 'کیف پول', icon: '💰' },
   { key: 'orders', label: 'سفارش‌ها', icon: '📄' },
+  { key: 'members', label: 'اعضا', icon: '👥' },
 ];
 
 const sampleOrders = [
@@ -29,11 +30,16 @@ const sampleOrders = [
   },
 ];
 
+const sampleMembers = [
+  { username: 'store1', plan: 'پلن عمده‌فروشی A' },
+  { username: 'store2', plan: 'پلن ویژه سوپرمارکت' },
+];
+
 const samplePlans = [
   {
     plan_id: 'planA',
     name: 'پلن عمده‌فروشی A',
-    profit_percent: 12,
+    discount_percent: 12,
     products: [
       { product_id: '12345', name: 'دستمال کاغذی کلین‌آپ', special_price: 90000 },
       { product_id: '67890', name: 'مایع سفیدکننده تاژ', special_price: 48000 },
@@ -42,7 +48,7 @@ const samplePlans = [
   {
     plan_id: 'planB',
     name: 'پلن ویژه سوپرمارکت',
-    profit_percent: 8,
+    discount_percent: 8,
     products: [
       { product_id: '12345', name: 'دستمال کاغذی کلین‌آپ', special_price: 92000 },
       { product_id: '13579', name: 'شامپو مو صحت', special_price: 83000 },
@@ -61,6 +67,11 @@ export default function AdminPanel() {
   const [inventoryLoading, setInventoryLoading] = useState(false);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [plans, setPlans] = useState(samplePlans);
+  const [productImages, setProductImages] = useState<Record<string, string[]>>({});
+  const [members, setMembers] = useState(sampleMembers);
+  const [newMember, setNewMember] = useState({ username: '', password: '', plan: samplePlans[0].plan_id });
+  const [memberError, setMemberError] = useState<string | null>(null);
+  const [memberSuccess, setMemberSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (active === 'products') {
@@ -127,23 +138,42 @@ export default function AdminPanel() {
               {!loading && !error && (
                 <div className="row g-3">
                   {products.length === 0 && <div className="text-center">محصولی یافت نشد.</div>}
-                  {products.map((p) => (
+                  {products.map((p, idx) => (
                     <div className="col-12 col-md-6 col-lg-4" key={p.product_id}>
                       <div className="card p-3 shadow-sm border-0 rounded-4 mb-2" style={{ background: '#fff' }}>
-                        <div className="d-flex align-items-center mb-2">
-                          <span style={{ fontSize: 40, marginLeft: 12 }}>🛍️</span>
-                          <div className="flex-grow-1 text-end">
-                            <div className="fw-bold" style={{ fontSize: 18 }}>{p.name}</div>
-                            <div className="text-secondary" style={{ fontSize: 13 }}>{p.category}</div>
-                          </div>
+                        <div className="d-flex align-items-center mb-2 justify-content-between">
+                          <span className="fw-bold" style={{ fontSize: 18 }}>
+                            <input
+                              type="text"
+                              value={p.name}
+                              onChange={e => setProducts(ps => ps.map((item, i) => i === idx ? { ...item, name: e.target.value } : item))}
+                              className="form-control d-inline-block w-auto"
+                              style={{ fontSize: 18, fontWeight: 700, minWidth: 120, display: 'inline-block' }}
+                            />
+                          </span>
+                          <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}>ID: {p.product_id}</span>
+                        </div>
+                        <div className="mb-2 d-flex flex-wrap align-items-center" style={{ gap: 8 }}>
+                          {(productImages[p.product_id] || (p.image_url ? [p.image_url] : [])).map((img, i) => (
+                            <div key={i} style={{ position: 'relative' }}>
+                              <img src={img} alt="product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1px solid #eee' }} />
+                              <button className="btn btn-sm btn-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ fontSize: 10, padding: 2 }} onClick={() => setProductImages(imgs => ({ ...imgs, [p.product_id]: (imgs[p.product_id] || [p.image_url]).filter((_, j) => j !== i) }))}>×</button>
+                            </div>
+                          ))}
+                          <label className="btn btn-sm btn-outline-primary mb-0" style={{ fontSize: 13 }}>
+                            + عکس
+                            <input type="file" accept="image/*" multiple hidden onChange={e => {
+                              const files = Array.from(e.target.files || []);
+                              const urls = files.map(f => URL.createObjectURL(f));
+                              setProductImages(imgs => ({ ...imgs, [p.product_id]: [...(imgs[p.product_id] || (p.image_url ? [p.image_url] : [])), ...urls] }));
+                            }} />
+                          </label>
                         </div>
                         <div className="d-flex flex-wrap justify-content-between align-items-center mt-2" style={{ gap: 8 }}>
                           <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}><b>برند:</b> {p.brand}</span>
                           <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}><b>قیمت:</b> {p.base_price?.toLocaleString()} تومان</span>
                           <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}><b>واحد:</b> {p.unit}</span>
-                          {p.pack_size && (
-                            <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}><b>تعداد در هر {p.unit}:</b> {p.pack_size}</span>
-                          )}
+                          <span className="badge bg-light text-dark border" style={{ fontSize: 13 }}><b>تعداد در هر {p.unit}:</b> {p.pack_size}</span>
                           <span className={`badge ${p.is_active ? 'bg-success' : 'bg-danger'}`} style={{ fontSize: 13 }}>
                             {p.is_active ? 'فعال' : 'غیرفعال'}
                           </span>
@@ -159,16 +189,13 @@ export default function AdminPanel() {
             <div>
               <h4 className="fw-bold mb-4 text-end">💎 مدیریت پلن‌ها و قیمت‌های اختصاصی</h4>
               <div className="row g-4">
-                {plans.map((plan, idx) => (
+                {plans.map((plan) => (
                   <div className="col-12 col-lg-6" key={plan.plan_id}>
                     <div className="card p-4 shadow-sm border-0 rounded-4 mb-2" style={{ background: '#fff' }}>
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <span className="fw-bold" style={{ fontSize: 16 }}>{plan.name}</span>
-                        <span className="badge bg-info text-dark" style={{ fontSize: 13 }}>درصد سود: 
-                          <input type="number" min={0} max={100} value={plan.profit_percent} onChange={e => {
-                            const val = Math.max(0, Math.min(100, parseInt(e.target.value) || 0));
-                            setPlans(plans => plans.map((p, i) => i === idx ? { ...p, profit_percent: val } : p));
-                          }} style={{ width: 50, marginRight: 6, borderRadius: 8, border: '1px solid #eee', fontSize: 13, textAlign: 'center' }} /> %
+                        <span className="badge bg-info text-dark" style={{ fontSize: 13 }}>
+                          درصد تخفیف: {plan.discount_percent} %
                         </span>
                       </div>
                       <div className="mb-2">
@@ -180,25 +207,14 @@ export default function AdminPanel() {
                             </tr>
                           </thead>
                           <tbody>
-                            {plan.products.map((prod, pidx) => (
+                            {plan.products.map((prod) => (
                               <tr key={prod.product_id}>
                                 <td>{prod.name}</td>
-                                <td>
-                                  <input type="number" min={0} value={prod.special_price} onChange={e => {
-                                    const val = Math.max(0, parseInt(e.target.value) || 0);
-                                    setPlans(plans => plans.map((pl, i) => i === idx ? {
-                                      ...pl,
-                                      products: pl.products.map((pr, j) => j === pidx ? { ...pr, special_price: val } : pr)
-                                    } : pl));
-                                  }} style={{ width: 90, borderRadius: 8, border: '1px solid #eee', fontSize: 14, textAlign: 'center' }} /> تومان
-                                </td>
+                                <td>{prod.special_price?.toLocaleString()} تومان</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
-                      </div>
-                      <div className="text-end mt-2">
-                        <button className="btn btn-sm btn-primary rounded-pill" onClick={() => alert('تغییرات پلن ذخیره شد (شبیه‌سازی).')}>ذخیره پلن</button>
                       </div>
                     </div>
                   </div>
@@ -348,6 +364,75 @@ export default function AdminPanel() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+          {active === 'members' && (
+            <div>
+              <h4 className="fw-bold mb-4 text-end">👥 مدیریت اعضا (فروشگاه‌ها)</h4>
+              {memberError && <div className="alert alert-danger text-end">{memberError}</div>}
+              {memberSuccess && <div className="alert alert-success text-end">{memberSuccess}</div>}
+              <div className="mb-4">
+                <form className="row g-2 align-items-end" onSubmit={e => {
+                  e.preventDefault();
+                  setMemberError(null);
+                  setMemberSuccess(null);
+                  if (!newMember.username || !newMember.password) {
+                    setMemberError('یوزرنیم و پسورد الزامی است.');
+                    return;
+                  }
+                  if (members.some(m => m.username === newMember.username)) {
+                    setMemberError('این یوزرنیم قبلاً ثبت شده است.');
+                    return;
+                  }
+                  setMembers(members => [...members, { username: newMember.username, plan: plans.find(p => p.plan_id === newMember.plan)?.name || '' }]);
+                  setMemberSuccess('عضو جدید با موفقیت اضافه شد.');
+                  setNewMember({ username: '', password: '', plan: samplePlans[0].plan_id });
+                }}>
+                  <div className="col-md-3">
+                    <label className="form-label">یوزرنیم</label>
+                    <input type="text" className="form-control" value={newMember.username} onChange={e => setNewMember(n => ({ ...n, username: e.target.value }))} />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">پسورد</label>
+                    <input type="password" className="form-control" value={newMember.password} onChange={e => setNewMember(n => ({ ...n, password: e.target.value }))} />
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label">پلن</label>
+                    <select className="form-select" value={newMember.plan} onChange={e => setNewMember(n => ({ ...n, plan: e.target.value }))}>
+                      {plans.map(p => <option key={p.plan_id} value={p.plan_id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-md-2">
+                    <button type="submit" className="btn btn-primary w-100">افزودن عضو</button>
+                  </div>
+                </form>
+              </div>
+              <div className="table-responsive">
+                <table className="table table-bordered text-end align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>یوزرنیم</th>
+                      <th>پلن اختصاصی</th>
+                      <th>عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {members.length === 0 && <tr><td colSpan={3} className="text-center">عضوی ثبت نشده است.</td></tr>}
+                    {members.map((m, idx) => (
+                      <tr key={m.username}>
+                        <td>{m.username}</td>
+                        <td>{m.plan}</td>
+                        <td>
+                          <button className="btn btn-sm btn-danger" onClick={() => {
+                            setMembers(members => members.filter((_, i) => i !== idx));
+                            setMemberSuccess('عضو با موفقیت حذف شد.');
+                          }}>حذف</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
