@@ -1,0 +1,93 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-06-09T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2024.1.0",
+  "resources": [
+    {
+      "_id": "wrk_1",
+      "_type": "workspace",
+      "name": "Accounting System API",
+      "description": "Insomnia collection for B2B platform integration with accounting system."
+    },
+    {
+      "_id": "env_1",
+      "_type": "environment",
+      "parentId": "wrk_1",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://accounting.local"
+      }
+    },
+    {
+      "_id": "req_1",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Get Product Inventory",
+      "method": "GET",
+      "url": "{{ base_url }}/inventory/12345",
+      "description": "دریافت موجودی فعلی یک محصول بر اساس شناسه محصول.",
+      "body": {},
+      "parameters": [],
+      "headers": []
+    },
+    {
+      "_id": "req_2",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Decrement Inventory",
+      "method": "POST",
+      "url": "{{ base_url }}/inventory/decrement",
+      "description": "کسر موجودی پس از ثبت سفارش.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"product_id\": \"12345\",\n  \"quantity\": 5\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_3",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Get Products List",
+      "method": "GET",
+      "url": "{{ base_url }}/products",
+      "description": "دریافت لیست محصولات و اطلاعات پایه.",
+      "body": {},
+      "parameters": [],
+      "headers": []
+    },
+    {
+      "_id": "req_4",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Wallet Transaction",
+      "method": "POST",
+      "url": "{{ base_url }}/wallet/transaction",
+      "description": "ثبت تراکنش مالی (افزایش/کاهش اعتبار)",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"customer_id\": \"super_market_alef\",\n  \"amount\": 200000,\n  \"type\": \"increase\",\n  \"description\": \"افزایش اعتبار اولیه\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_5",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Get Order Status",
+      "method": "GET",
+      "url": "{{ base_url }}/orders/98765",
+      "description": "دریافت وضعیت سفارش.",
+      "body": {},
+      "parameters": [],
+      "headers": []
+    }
+  ]
+} 
