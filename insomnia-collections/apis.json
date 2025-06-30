@@ -88,6 +88,35 @@
       "body": {},
       "parameters": [],
       "headers": []
+    },
+    {
+      "_id": "req_6",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Create Customer",
+      "method": "POST",
+      "url": "{{ base_url }}/customers",
+      "description": "ایجاد فروشگاه/مشتری جدید با یوزرنیم، پسورد و پلن.",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"new_store_01\",\n  \"password\": \"securepass123\",\n  \"plan_id\": \"plan_silver\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_7",
+      "_type": "request",
+      "parentId": "wrk_1",
+      "name": "Delete Customer",
+      "method": "DELETE",
+      "url": "{{ base_url }}/customers/new_store_01",
+      "description": "حذف فروشگاه/مشتری بر اساس شناسه.",
+      "body": {},
+      "parameters": [],
+      "headers": []
     }
   ]
 } 
